@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR</title>
+  <link rel="stylesheet" href="../style.css" />
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body>
+  <!-- Tombol Deskripsi -->
+  <button id="deskripsiBtn">Deskripsi</button>
+  <div id="deskripsiText" style="display: none;">
+    Kupat glabed adalah sajian yang terdiri dari ketupat dan kuah kuning glabed(lengket)
+    Kupat glabed terlihat seperti opor namun bedanya dari kuah yang kental dan diatasnya terdapat taburan remahan kerupuk
+  </div>
+
+  <!-- Kontrol Zoom -->
+  <div style="position: fixed; bottom: 10px; left: 10px; z-index: 10;">
+    <button onclick="zoomModel(0.2)">Zoom In</button>
+    <button onclick="zoomModel(-0.2)">Zoom Out</button>
+  </div>
+
+  <!-- AR Scene -->
+  <a-scene
+    mindar-image="imageTargetSrc: ../../assets/marker/glabed.mind"
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <a-asset-item id="glabed_model" src="../assets/model/glabed.glb"></a-asset-item>
+    </a-assets>
+    <a-entity light="type: directional; intensity: 1; color: #ffffff" position="1 1 0.5"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-gltf-model
+        id="model"
+        gltf-model="#glabed_model"
+        position="0 0 0"
+        scale="1 1 1"
+        rotation="45 0 0">
+      </a-gltf-model>
+    </a-entity>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+  </a-scene>
+
+  <!-- Script -->
+  <script>
+    const btn = document.getElementById('deskripsiBtn');
+    const text = document.getElementById('deskripsiText');
+    const model = document.getElementById('model');
+
+    btn.addEventListener('click', () => {
+      text.style.display = text.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Fungsi zoom pakai tombol
+    function zoomModel(delta) {
+      const scale = model.getAttribute('scale');
+      const minScale = 0.5; // batas minimum ukuran
+      const maxScale = 5;   // batas maksimum ukuran
+
+      const newScale = {
+        x: Math.min(maxScale, Math.max(minScale, scale.x - delta)),
+        y: Math.min(maxScale, Math.max(minScale, scale.y - delta)),
+        z: Math.min(maxScale, Math.max(minScale, scale.z - delta))
+      };
+      model.setAttribute('scale', newScale);
+    }
+
+    // Fungsi drag untuk rotasi pakai mouse atau jari
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    document.addEventListener('mousedown', function (e) {
+      isDragging = true;
+      previousMousePosition = { x: e.clientX, y: e.clientY };
+    });
+
+    document.addEventListener('mouseup', function (e) {
+      isDragging = false;
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (isDragging) {
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+
+        const rotation = model.getAttribute('rotation');
+        rotation.y += deltaX * 0.5;
+        rotation.x += deltaY * 0.5;
+        model.setAttribute('rotation', rotation);
+      }
+    });
+
+    // Untuk touchscreen
+    document.addEventListener('touchstart', function (e) {
+      isDragging = true;
+      previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    });
+
+    document.addEventListener('touchend', function (e) {
+      isDragging = false;
+    });
+
+    document.addEventListener('touchmove', function (e) {
+      if (isDragging) {
+        const deltaX = e.touches[0].clientX - previousMousePosition.x;
+        const deltaY = e.touches[0].clientY - previousMousePosition.y;
+        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+        const rotation = model.getAttribute('rotation');
+        rotation.y += deltaX * 0.5;
+        rotation.x += deltaY * 0.5;
+        model.setAttribute('rotation', rotation);
+      }
+    });
+  </script>
+</body>
+</html>
